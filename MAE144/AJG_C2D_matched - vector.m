@@ -1,4 +1,4 @@
-function [Dz] = AJG_C2D_matched(user_Ds, user_omegab, user_casual)
+function [Dz] = AJG_C2D_matched(user_Ds, args)
     % function [] = AJG_C2D_matched(omega, Ds)
     % Convert D(s) to D(z)
     % INPUTS omega bar (freq of interest), D(s), "semi-casual" or "strictly-casual"
@@ -7,26 +7,25 @@ function [Dz] = AJG_C2D_matched(user_Ds, user_omegab, user_casual)
     % when Ds = (s + z)/(s*(s+p))
     % omega = 0
     % casual = semi-casual
-
-    %assume intial conditions
+    
     syms z p
-    Ds = RR_tf([ 1 z], [1 p 0]);
-    h = 1;
-    omegab = 0;
-    casual = semi-casual;
 
-    switch nargin
-        case 1 %Only Ds is user defined
-            Ds = user_Ds;
-        case 2 %User defined Ds and OmegaBar
-            Ds = user_Ds;
-            omegab = user_omegab;
-        case 3 %User defined Ds OmegaBar and casualty
-            Ds = user_Ds;
-            omegab = user_omegab;
-            casual = user_casual;
+    Ds = input("Enter a Ds to convert to Dz using RR_tf[] format(test case is D(s) = (s + z)/(s*(s+p))): ")
+    if isempty(Ds)
+        Ds = RR_tf([ 1 z], [1 p 0]);
     end
 
+    casual = input("Enter 'strictly' casual or 'semi' casual(test case is 'semi'): ", 's')
+    if isempty(casual)
+        casual = "semi";
+    end
+
+    omega = input("Enter a desired frequency of interest(test case is omega = 0):")
+    if isempty(omega)
+        omega = 0;
+    end
+        
+    h = 1;
     %pull zeros poles and gain from s
     z_s = Ds.z;
     p_s = Ds.p ;
