@@ -1,57 +1,48 @@
-function [Dz] = AJG_C2D_matched(user_Ds, user_omegab, user_casual)
-    % function [] = AJG_C2D_matched(omega, Ds)
-    % Convert D(s) to D(z)
-    % INPUTS omega bar (freq of interest), D(s), "semi-casual" or "strictly-casual"
-    % OUTPUTS D(z)
-    % TESTS if left uninitiated, the program will run the test for:
-    % when Ds = (s + z)/(s*(s+p))
-    % omega = 0
-    % casual = semi-casual
+function [Dz] = AJG_C2D_matched(user_Ds, h, user_causal, omega)
+    sympref('FloatingPointOutput', true);
+    Ds = user_Ds;
 
-    %assume intial conditions
-    syms z p
-    Ds = RR_tf([ 1 z], [1 p 0]);
-    h = 1;
-    omegab = 0;
-    casual = semi-casual;
-
-    switch nargin
-        case 1 %Only Ds is user defined
-            Ds = user_Ds;
-        case 2 %User defined Ds and OmegaBar
-            Ds = user_Ds;
-            omegab = user_omegab;
-        case 3 %User defined Ds OmegaBar and casualty
-            Ds = user_Ds;
-            omegab = user_omegab;
-            casual = user_casual;
-    end
-
-    %pull zeros poles and gain from s
-    z_s = Ds.z;
-    p_s = Ds.p ;
-    K_s = Ds.K;
-
-    %map from s to z using z = exp(s*h)
-    p_z = exp(p_s * h);
-    z_z = exp(z_s * h);
-
-    % if there is an infinte zero -> z = -1 
-    z_z(z_z == 0) = -1; %make all of the infinte zeros z = -1
-
-    % if strickly casual make an infinte zero z = inf
-    if (casual == strictly-casual) 
-        z_z(z_z == 0, 1) = inf; 
-    end
-
-    %build the gain
-    %not needed -> f=2*(1-cos(omegab*h))/(omegab*h*sin(omegab*h));
-    %not needed -> c=2/(f*h);
-
-    K_z = K_s;
     
-    %Pack together - reform the transform fn
-    Dz = RR_tf(z_z, p_z, K_z);
+    zeros_z = exp(h*Ds.z);
+    poles_z = exp(h*Ds.p);
+
+    m = Ds.num.n; %order of numer
+    n = Ds.den.n; %order of denom
+
+    %Determine number of infintie zeros
+    if n - m > 0 
+        zeros_z = [zeros_z, (zeros([1, n - m]) - 1)];
+    end
+    disp(zeros_z)
+    %Determine amount of zeros by causalty
+    if (user_causal == "strict" && n - m > 0)
+        for i = 0: n - m - 1
+            zeros_z(end - i) = []; %loops until there are enough z zeros removed such that the system is strictly proper
+        end
+    end
+    
+    %Determine Gain
+    z = exp(omega*h);
+    disp(z)
+    disp("zeros")
+    disp(zeros_z)
+    disp("poles")
+    disp(poles_z)
+    disp("evaluate zeros poly")
+    disp(RR_evaluate(RR_poly(zeros_z, 1), z))
+    disp("make poles poly")
+    disp(RR_poly(poles_z, 1))
+    disp("evaluate poles poly at z")
+    disp(RR_evaluate(RR_poly(poles_z, 1), z))
+    disp("evaluate zero poly at z")
+    disp(RR_evaluate(RR_tf(zeros_z, poles_z), z))
+    disp(" zeros / poles")
+    disp((RR_evaluate(RR_poly(zeros_z, 1), z)/ RR_evaluate(RR_poly(poles_z, 1), z)))
+    disp("final")
+    disp(Ds.K / (RR_evaluate(RR_poly(zeros_z, 1), z)/ RR_evaluate(RR_poly(poles_z, 1), z)));
+
+    K_z = Ds.K / (RR_evaluate(RR_poly(zeros_z, 1), z)/ RR_evaluate(RR_poly(poles_z, 1), z));
+    Dz = RR_tf(zeros_z, poles_z, K_z);
 end
 
 %THings to add
