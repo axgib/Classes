@@ -22,7 +22,7 @@ function [Dz] = AJG_C2D_matched(user_Ds, h, user_causal, omega)
     if n - m > 0 
         zeros_z = [zeros_z, (zeros([1, n - m]) - 1)];
     end
-    disp(zeros_z)
+    
     %Determine amount of zeros by causalty
     if (user_causal == "strict" && n - m > 0) %If the system is required to be strictly causal then make the order or the numerator one less than the order of the denom
         for i = 0: n - m - 1
@@ -31,9 +31,10 @@ function [Dz] = AJG_C2D_matched(user_Ds, h, user_causal, omega)
     end
     
     %Determine Gain
-    %Solve for the gain of Dz by plugging in z = e^(omega*h) and equating it to Ds at s = 0
+    %Solve for the gain of Dz by plugging in z = e^(omega*h) and equating it to the Ds gain at s = i*omega
     z = exp(omega*h);
-    K_z = Ds.K / (RR_evaluate(RR_poly(zeros_z, 1), z)/ RR_evaluate(RR_poly(poles_z, 1), z));
+    Ds_omega = RR_evaluate(Ds, omega);
+    K_z = Ds_omega / (RR_evaluate(RR_poly(zeros_z, 1), z)/ RR_evaluate(RR_poly(poles_z, 1), z));
 
     %Build Dz
     Dz = RR_tf(zeros_z, poles_z, K_z);
