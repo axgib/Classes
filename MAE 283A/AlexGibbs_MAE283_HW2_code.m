@@ -36,7 +36,7 @@ ylabel("log(\omega)")
 
 %% Problem 3
 
-clear; clc; 
+clear; clc; close all;
 
 data = load("mass_spring_damper.mat");
 deltaT = 0.1; %s
@@ -49,7 +49,7 @@ PHI = [u(2:end-1) u(3:end) -y(2:end-1) -y(1:end-2)];
 Y = y(3:end);
 theta = PHI\Y
 
-
+figure;
 myY = PHI*theta;
 plot(t, y, "-k")
 hold on
@@ -78,5 +78,10 @@ k = myK
 m = double(sol.m) %kg
 d = double(sol.d) %Ns/m
 
+figure;
 Go = tf( 1, [m, d, k])
+
 lsim(Go, u, t)
+hold on;
+plot(t, y)
+legend("TF with mdk","measured y")
