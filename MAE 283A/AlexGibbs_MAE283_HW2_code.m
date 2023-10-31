@@ -28,8 +28,9 @@ spectrum_est = fft(Re(omega_adj))/N;
 loglog(omega, real(spectrum_est(1:2:N)))
 
 legend('\Phi', '\Phi_est');
-xlabel("log()")
-ylabel("log(\omega)")
+xlabel("log(\omega)")
+ylabel("log(\Phi)")
+title("Spectrum and Periodogram Estimate")
 
 
 
@@ -57,6 +58,7 @@ plot(t(1:end-2), myY)
 legend("measured y(k)", "simulated y_sim(k)");
 xlabel("time t")
 ylabel("Distance - x (m)")
+title("3.2 - Compare measured output y(k) with simulated y_sim(k)")
 
 b1 = theta(1);
 b2 = theta(2);
@@ -85,3 +87,4 @@ lsim(Go, u, t)
 hold on;
 plot(t, y)
 legend("TF with mdk","measured y")
+
